@@ -4,14 +4,37 @@ from requests import urllib3
 import time
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-def aci_get(apic_url):
-    base_url = ('https://api.meraki.com/api/v0/{}'.format(apic_url))
+def http_get(meraki_url):
+    base_url = ('https://api.meraki.com/api/v0/{}'.format(meraki_url))
     headers = {'X-Cisco-Meraki-API-Key': '029c931f51ee7ea3d74de7cbf6e2db80b17d38d7'}
     get_response = requests.get(base_url, headers=headers, verify=False).json()
     #json_data = json.dumps(get_response)
     return get_response
 
-orgs = aci_get(apic_url='organizations')
+# Intitialise dictionary to store returned data
+meraki_data = {}
+orgs = http_get(meraki_url='organizations')
+meraki_data['orgs'] = orgs
+meraki_data["networks"] = []
+meraki_data["licenses"] = []
+
+
+for org in meraki_data['orgs']:
+    # Get networks from all orgs and add to dictionary
+    networks = http_get(meraki_url='organizations/{}/networks'.format(org["id"]))
+    for network in networks:
+        meraki_data["networks"].append(network)
+
+    # Get license info from all orgs and add to dictionary
+    licenses = http_get(meraki_url='organizations/{}/licenseState'.format(org["id"]))
+    meraki_data["licenses"].append(licenses)
+    print(licenses)
+    #for license in licenses:
+
+print(meraki_data)
+
+
+'''
 print(orgs[0]["id"])
 networks = aci_get(apic_url='organizations/{}/networks'.format(orgs[0]["id"]))
 org_license = aci_get(apic_url='organizations/{}/licenseState'.format(orgs[0]["id"]))
@@ -52,7 +75,7 @@ for serial in device_serials:
     uplink = aci_get(apic_url='networks/{}/devices/{}/uplink'.format(networks[0]["id"], serial))
     uplinks.append({serial : uplink})
     client = aci_get(apic_url='/devices/{}/clients'.format(serial))
-
+'''
 '''
     for i in client:
         traffic = aci_get(apic_url='networks/{}/clients/{}/trafficHistory'.format(networks[0]["id"], i["id"]))
