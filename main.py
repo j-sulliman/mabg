@@ -2,13 +2,14 @@ import json
 import requests
 from requests import urllib3
 import time
+import pprint as pp
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 def http_get(meraki_url):
     base_url = ('https://api.meraki.com/api/v0/{}'.format(meraki_url))
     headers = {'X-Cisco-Meraki-API-Key': '029c931f51ee7ea3d74de7cbf6e2db80b17d38d7'}
     get_response = requests.get(base_url, headers=headers, verify=False).json()
-    #json_data = json.dumps(get_response)
+    time.sleep(0.5)
     return get_response
 
 # Intitialise dictionary to store returned data
@@ -17,6 +18,14 @@ orgs = http_get(meraki_url='organizations')
 meraki_data['orgs'] = orgs
 meraki_data["networks"] = []
 meraki_data["licenses"] = []
+meraki_data["devices"] = []
+meraki_data["securityEvents"] = []
+meraki_data["ssids"] = []
+meraki_data["fwServices"] = []
+meraki_data["intrusionPrevention"] = []
+meraki_data["malwareSettings"] = []
+meraki_data["l3FirewallRules"] = []
+meraki_data["vlans"] = []
 
 
 for org in meraki_data['orgs']:
@@ -28,10 +37,51 @@ for org in meraki_data['orgs']:
     # Get license info from all orgs and add to dictionary
     licenses = http_get(meraki_url='organizations/{}/licenseState'.format(org["id"]))
     meraki_data["licenses"].append(licenses)
-    print(licenses)
-    #for license in licenses:
 
-print(meraki_data)
+    # Get IPs
+    ips = http_get(meraki_url='organizations/{}/security/intrusionSettings'.format(org["id"]))
+    for ip in ips:
+        meraki_data["intrusionPrevention"].append(ip)
+
+for network in meraki_data['networks']:
+    # Get Meraki devices
+    devices = http_get(meraki_url='networks/{}/devices'.format(network["id"]))
+    for device in devices:
+        meraki_data["devices"].append(device)
+
+    # Get Security Events
+    sec_events = http_get(meraki_url='networks/{}/securityEvents'.format(network["id"]))
+    for sec_event in sec_events:
+        meraki_data["securityEvents"].append(sec_event)
+
+    # Get SSIDs
+    ssids = http_get(meraki_url='networks/{}/ssids'.format(network["id"]))
+    for ssid in ssids:
+        meraki_data["ssids"].append(ssid)
+
+    # Get Firewall Services
+    fw_services = http_get(meraki_url='networks/{}/firewalledServices'.format(network["id"]))
+    for fwService in fw_services:
+        meraki_data["fwServices"].append(fwService)
+
+    # Get Malware Settings
+    '''
+    malware_settings = http_get(meraki_url='networks/{}/malwareSettings'.format(network["id"]))
+    for malware in malware_settings:
+        meraki_data["malwareSettings"].append(malware)
+    '''
+    # Get L3 Firewall Rules
+    l3_rules = http_get(meraki_url='networks/{}/l3FirewallRules'.format(network["id"]))
+    for rule in l3_rules:
+        meraki_data["l3FirewallRules"].append(rule)
+
+    # Get VLANs
+    vlans = http_get(meraki_url='networks/{}/vlans'.format(network["id"]))
+    for vlan in vlans:
+        meraki_data["vlans"].append(vlan)
+
+
+pp.pprint(meraki_data)
 
 
 '''
