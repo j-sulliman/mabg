@@ -1,0 +1,56 @@
+id,200
+networkId,L_683984193406901066
+name,Desktop
+applianceIp,192.168.200.1
+subnet,192.168.200.0/24
+fixedIpAssignments,{}
+reservedIpRanges,[]
+dnsNameservers,upstream_dns
+dhcpHandling,Run a DHCP server
+dhcpLeaseTime,1 day
+dhcpBootOptionsEnabled,False
+dhcpBootNextServer,
+dhcpBootFilename,
+dhcpOptions,[]
+id,201
+networkId,L_683984193406901066
+name,wifi
+applianceIp,192.168.201.1
+subnet,192.168.201.0/24
+fixedIpAssignments,{}
+reservedIpRanges,[]
+dnsNameservers,upstream_dns
+dhcpHandling,Run a DHCP server
+dhcpLeaseTime,1 day
+dhcpBootOptionsEnabled,False
+dhcpBootNextServer,
+dhcpBootFilename,
+dhcpOptions,[]
+id,202
+networkId,L_683984193406901066
+name,ms
+applianceIp,192.168.202.1
+subnet,192.168.202.0/24
+fixedIpAssignments,{}
+reservedIpRanges,[]
+dnsNameservers,upstream_dns
+dhcpHandling,Run a DHCP server
+dhcpLeaseTime,1 day
+dhcpBootOptionsEnabled,False
+dhcpBootNextServer,
+dhcpBootFilename,
+dhcpOptions,[]
+id,203
+networkId,L_683984193406901066
+name,cctv
+applianceIp,192.168.203.1
+subnet,192.168.203.0/24
+fixedIpAssignments,{}
+reservedIpRanges,[]
+dnsNameservers,upstream_dns
+dhcpHandling,Run a DHCP server
+dhcpLeaseTime,1 day
+dhcpBootOptionsEnabled,False
+dhcpBootNextServer,
+dhcpBootFilename,
+dhcpOptions,[]

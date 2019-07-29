@@ -1,8 +1,11 @@
+#!/usr/bin/python3
 import json
 import requests
 from requests import urllib3
 import time
 import pprint as pp
+import csv
+import pandas as pd
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 def http_get(meraki_url):
@@ -81,9 +84,28 @@ for network in meraki_data['networks']:
         meraki_data["vlans"].append(vlan)
 
 
-pp.pprint(meraki_data)
+#pp.pprint(meraki_data)
 
+'''
+w = csv.writer(open("vlans_output.csv", "w"))
+for i in meraki_data['vlans']:
+    for key, val in i.items():
+        w.writerow([key, val])
+'''
+licenses_df = pd.DataFrame.from_dict(meraki_data['licenses'])
+orgs_df = pd.DataFrame.from_dict(meraki_data['orgs'])
+networks_df = pd.DataFrame.from_dict(meraki_data['networks'])
+meraki_vlans_df = pd.DataFrame.from_dict(meraki_data['vlans'])
+l3FirewallRules_df = pd.DataFrame.from_dict(meraki_data['l3FirewallRules'])
+ssids_df = pd.DataFrame.from_dict(meraki_data['ssids'])
+devices_df = pd.DataFrame.from_dict(meraki_data['devices'])
+#print (meraki_data_df)
 
+with pd.ExcelWriter('output.xlsx') as writer:  # doctest: +SKIP
+    meraki_vlans_df.to_excel(writer, sheet_name='VLANs')
+    l3FirewallRules_df.to_excel(writer, sheet_name='l3FirewallRules')
+    ssids_df.to_excel(writer, sheet_name='ssids')
+...     #df2.to_excel(writer, sheet_name='Sheet_name_2')
 '''
 print(orgs[0]["id"])
 networks = aci_get(apic_url='organizations/{}/networks'.format(orgs[0]["id"]))
