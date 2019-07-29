@@ -6,6 +6,8 @@ import time
 import pprint as pp
 import csv
 import pandas as pd
+from docx import Document
+from docx.shared import Inches
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 def http_get(meraki_url):
@@ -47,6 +49,19 @@ for org in meraki_data['orgs']:
         meraki_data["intrusionPrevention"].append(ip)
 
 for network in meraki_data['networks']:
+    def get_network_info(append_url = '', dict_key =''):
+        data = http_get(meraki_url='networks/{}/{}'.format(network["id"],
+        append_url))
+        for i in data:
+            meraki_data[dict_key].append(data)
+    get_network_info(append_url='devices', dict_key='devices')
+    get_network_info(append_url='securityEvents', dict_key='securityEvents')
+    get_network_info(append_url='ssids', dict_key='ssids')
+    get_network_info(append_url='firewalledServices', dict_key='fwServices')
+    get_network_info(append_url='l3FirewallRules', dict_key='l3FirewallRules')
+    get_network_info(append_url='vlans', dict_key='vlans')
+
+    '''
     # Get Meraki devices
     devices = http_get(meraki_url='networks/{}/devices'.format(network["id"]))
     for device in devices:
@@ -66,13 +81,13 @@ for network in meraki_data['networks']:
     fw_services = http_get(meraki_url='networks/{}/firewalledServices'.format(network["id"]))
     for fwService in fw_services:
         meraki_data["fwServices"].append(fwService)
-
+    '''
     # Get Malware Settings
     '''
     malware_settings = http_get(meraki_url='networks/{}/malwareSettings'.format(network["id"]))
     for malware in malware_settings:
         meraki_data["malwareSettings"].append(malware)
-    '''
+
     # Get L3 Firewall Rules
     l3_rules = http_get(meraki_url='networks/{}/l3FirewallRules'.format(network["id"]))
     for rule in l3_rules:
@@ -82,7 +97,7 @@ for network in meraki_data['networks']:
     vlans = http_get(meraki_url='networks/{}/vlans'.format(network["id"]))
     for vlan in vlans:
         meraki_data["vlans"].append(vlan)
-
+    '''
 
 #pp.pprint(meraki_data)
 
@@ -102,10 +117,15 @@ devices_df = pd.DataFrame.from_dict(meraki_data['devices'])
 #print (meraki_data_df)
 
 with pd.ExcelWriter('output.xlsx') as writer:  # doctest: +SKIP
+    licenses_df.to_excel(writer, sheet_name='licenses')
     meraki_vlans_df.to_excel(writer, sheet_name='VLANs')
     l3FirewallRules_df.to_excel(writer, sheet_name='l3FirewallRules')
+    devices_df.to_excel(writer, sheet_name='devices')
+    l3FirewallRules_df.to_excel(writer, sheet_name='l3FirewallRules')
     ssids_df.to_excel(writer, sheet_name='ssids')
-...     #df2.to_excel(writer, sheet_name='Sheet_name_2')
+
+print (meraki_data)
+
 '''
 print(orgs[0]["id"])
 networks = aci_get(apic_url='organizations/{}/networks'.format(orgs[0]["id"]))
