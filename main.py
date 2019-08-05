@@ -31,6 +31,8 @@ meraki_data["intrusionPrevention"] = []
 meraki_data["malwareSettings"] = []
 meraki_data["l3FirewallRules"] = []
 meraki_data["vlans"] = []
+meraki_data["traffic"] = []
+meraki_data["clients"] = []
 
 
 for org in meraki_data['orgs']:
@@ -53,13 +55,15 @@ for network in meraki_data['networks']:
         data = http_get(meraki_url='networks/{}/{}'.format(network["id"],
         append_url))
         for i in data:
-            meraki_data[dict_key].append(data)
-    get_network_info(append_url='devices', dict_key='devices')
-    get_network_info(append_url='securityEvents', dict_key='securityEvents')
-    get_network_info(append_url='ssids', dict_key='ssids')
-    get_network_info(append_url='firewalledServices', dict_key='fwServices')
-    get_network_info(append_url='l3FirewallRules', dict_key='l3FirewallRules')
-    get_network_info(append_url='vlans', dict_key='vlans')
+            meraki_data[dict_key].append(i)
+get_network_info(append_url='devices', dict_key='devices')
+get_network_info(append_url='securityEvents', dict_key='securityEvents')
+get_network_info(append_url='ssids', dict_key='ssids')
+get_network_info(append_url='firewalledServices', dict_key='fwServices')
+get_network_info(append_url='l3FirewallRules', dict_key='l3FirewallRules')
+get_network_info(append_url='vlans', dict_key='vlans')
+get_network_info(append_url='traffic', dict_key='traffic')
+get_network_info(append_url='clients', dict_key='clients')
 
 
 licenses_df = pd.DataFrame.from_dict(meraki_data['licenses'])
@@ -69,7 +73,9 @@ meraki_vlans_df = pd.DataFrame.from_dict(meraki_data['vlans'])
 l3FirewallRules_df = pd.DataFrame.from_dict(meraki_data['l3FirewallRules'])
 ssids_df = pd.DataFrame.from_dict(meraki_data['ssids'])
 devices_df = pd.DataFrame.from_dict(meraki_data['devices'])
-#print (meraki_data_df)
+clients_df = pd.DataFrame.from_dict(meraki_data['clients'])
+traffic_df = pd.DataFrame.from_dict(meraki_data['traffic'])
+pp.pprint (meraki_data)
 
 with pd.ExcelWriter('output.xlsx') as writer:  # doctest: +SKIP
     licenses_df.to_excel(writer, sheet_name='licenses')
@@ -78,3 +84,5 @@ with pd.ExcelWriter('output.xlsx') as writer:  # doctest: +SKIP
     devices_df.to_excel(writer, sheet_name='devices')
     l3FirewallRules_df.to_excel(writer, sheet_name='l3FirewallRules')
     ssids_df.to_excel(writer, sheet_name='ssids')
+    clients_df.to_excel(writer, sheet_name='clients')
+    traffic_df.to_excel(writer, sheet_name='traffic')
