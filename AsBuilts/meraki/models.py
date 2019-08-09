@@ -2,6 +2,13 @@ from django.db import models
 from django.utils import timezone
 
 # Create your models here.
+class MerakiInfo(models.Model):
+    api_key = models.CharField(max_length=200, primary_key=True,
+    default='xxxxxxxxxxxx')
+    customer_name = models.CharField(max_length=200, default="default")
+    last_updated = models.DateTimeField(default=timezone.now)
+
+
 class Licenses(models.Model):
     status = models.CharField(max_length=200)
     expirationDate = models.CharField(max_length=200, primary_key=True)

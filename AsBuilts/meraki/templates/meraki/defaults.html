@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block content %}
+
+{% load static %}
+<html>
+
+   <body>
+
+    <div class="container">
+        <div class="col-md-auto">
+
+            <h4>Enter API Key and Customer Name</h4>
+            <form method="POST" class="post-form">{% csrf_token %}
+                {{ form.as_p }}
+                <button type="submit" class="btn btn-secondary">Update</button>
+            </form>
+        </div>
+    </div>
+
+ </body>
+
+</html>
+{% endblock %}
