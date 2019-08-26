@@ -10,6 +10,7 @@ from docx import Document
 from docx.shared import Inches, Pt
 from docx.enum.section import WD_ORIENT, WD_SECTION
 from ..models import MerakiInfo
+import os
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
@@ -24,7 +25,9 @@ def http_get(meraki_url):
 
 
 def create_word_doc_title():
-    doc = Document('meraki/applications/Meraki As Built.docx')
+    cwd = os.getcwd()
+    print(cwd)
+    doc = Document('media/Meraki As Built.docx')
     #doc.add_heading(doc_title, 0)
     #doc.add_picture('meraki_splash.png', width=Inches(3.25))
     doc.add_page_break()
@@ -117,6 +120,8 @@ def pull_data():
     meraki_data["staticRoutes"] = []
     meraki_data["uplinksLossAndLatency"] = []
 
+    for customer in MerakiInfo.objects.all():
+        customer = customer.customer_name
 
     for org in meraki_data['orgs']:
         # Get networks from all orgs and add to dictionary
@@ -354,4 +359,4 @@ def pull_data():
         ssids_df
         )
 
-    doc.save('meraki/applications/demo1.docx')
+    doc.save('media/{}-AS_Built.docx'.format(customer))

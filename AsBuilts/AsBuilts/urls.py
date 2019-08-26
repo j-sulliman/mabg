@@ -19,11 +19,14 @@ from django.conf.urls import url
 from django.conf import settings
 from django.conf.urls.static import static
 from meraki import views
+from django.views.static import serve
+
 
 urlpatterns = [
     path('meraki/', include('meraki.urls')),
     path('admin/', admin.site.urls),
     url('meraki/defaults/', views.defaults_form, name='defaults_form'),
+    url(r'^download/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
 ]
 
 if settings.DEBUG:
