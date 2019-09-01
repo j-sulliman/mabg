@@ -84,21 +84,28 @@ def create_word_doc_bullet(
 def create_word_doc_table(doc, df):
     # add a table to the end and create a reference variable
     # extra row is so we can add the header row
-    t = doc.add_table(df.shape[0]+1, df.shape[1], style = 'Grid Table 4 Accent 6')
+    try:
+        t = doc.add_table(df.shape[0]+1, df.shape[1], style = 'Grid Table 4 Accent 6')
 
-    # add the header rows.
-    for j in range(df.shape[-1]):
-        t.cell(0,j).text = df.columns[j]
-
-
-
-    # add the rest of the data frame
-    for i in range(df.shape[0]):
+        # add the header rows.
         for j in range(df.shape[-1]):
-            t.cell(i+1,j).text = str(df.values[i,j])
+            t.cell(0,j).text = df.columns[j]
+
+
+
+        # add the rest of the data frame
+        for i in range(df.shape[0]):
+            for j in range(df.shape[-1]):
+                t.cell(i+1,j).text = str(df.values[i,j])
+    except:
+        doc = doc
+        print('Unable to add table')
 
     doc.add_page_break()
     return doc
+
+def save_word_document(doc, customer):
+    doc.save('media/{}-AS_Built.docx'.format(customer))
 
 def get_network_info(input_dict, append_url = '', dict_key ='', list=True):
     for network in input_dict:
@@ -131,13 +138,17 @@ def pull_data(meraki_url='organizations'):
 def get_org_info(dn='networks'):
     data = []
     orgs, status_code = pull_data(meraki_url='organizations')
+    try:
+        data_df = pd.DataFrame.from_dict(orgs)
+    except:
+        data_df = pd.DataFrame.from_dict(orgs, orient='index')
     for org in orgs:
         # Get networks from all orgs and add to dictionary
         org_data, status_code = pull_data(
             meraki_url='organizations/{}/{}'.format(org["id"], dn))
         for i in org_data:
             data.append(i)
-    return data, status_code
+    return data, status_code, data_df
 
 
 def get_network_info(network, append_url = ''):
@@ -271,6 +282,9 @@ def get_network_info(network, append_url = ''):
         connectionStats_df = pd.DataFrame.from_dict(meraki_data['connectionStats'])
     uplinksLossAndLatency_df = pd.DataFrame.from_dict(meraki_data['uplinksLossAndLatency'])
 
+    '''
+'''
+def word_report():
 
     doc = create_word_doc_title()
 
@@ -440,5 +454,6 @@ def get_network_info(network, append_url = ''):
         ssids_df
         )
 
+
+    doc.save('media/{}-AS_Built.docx'.format(customer))
 '''
-#    doc.save('media/{}-AS_Built.docx'.format(customer))
