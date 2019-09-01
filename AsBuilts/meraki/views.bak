@@ -7,7 +7,7 @@ from django.urls import reverse
 from .models import MerakiInfo
 from .forms import MerakiInfoForm
 from .tables import MerakiInfoForm_table
-from .applications.meraki import pull_data, get_org_info, get_network_info
+from .applications.meraki import pull_data
 import os
 
 from django.conf import settings
@@ -46,7 +46,7 @@ def defaults_form(request):
     customer = ''
     if request.method == "POST":
         form = MerakiInfoForm(request.POST)
-        MerakiInfo.objects.all().delete()
+        #MerakiInfo.objects.all().delete()
         #ObjectConfigurationStatus.objects.all().delete()
         if form.is_valid():
             post = form.save(commit=False)
@@ -57,39 +57,7 @@ def defaults_form(request):
                 print('API Key is {}'.format(i.api_key))
                 print('Customer is {}'.format(i.customer_name))
                 customer = i.customer_name
-                networks, status_code = get_org_info(dn='networks')
-                licenses, status_code = get_org_info(dn='licenseState')
-                uplinks, status_code = get_org_info(dn='uplinksLossAndLatency')
-                ips, status_code = get_org_info(dn='security/intrusionSettings')
-                malware, status_code = get_org_info(dn='security/malwareSettings')
-                l3fw, status_code = get_org_info(dn='security/l3FirewallRules')
-                for network in networks:
-                    devices, status_code = get_network_info(network,
-                    append_url='devices')
-                    securityEvents, status_code = get_network_info(network,
-                    append_url='securityEvents')
-                    ssids, status_code = get_network_info(network,
-                    append_url='ssids')
-                    firewalledServices, status_code = get_network_info(network,
-                    append_url='firewalledServices')
-                    l3FirewallRules, status_code = get_network_info(network,
-                    append_url='l3FirewallRules')
-                    contentFiltering, status_code = get_network_info(network,
-                    append_url='contentFiltering')
-                    intrusionSettings, status_code = get_network_info(network,
-                    append_url='security/intrusionSettings')
-                    devices, status_code = get_network_info(network,
-                    append_url='vlans')
-                    traffic, status_code = get_network_info(network,
-                    append_url='traffic?timespan=86400')
-                    connectionStats, status_code = get_network_info(network,
-                    append_url='connectionStats?timespan=86400')
-                    clients, status_code = get_network_info(network,
-                    append_url='clients')
-                    staticRoutes, status_code = get_network_info(network,
-                    append_url='staticRoutes')
-                    print(devices)
-
+                pull_data()
                 return redirect('/media/{}-AS_Built.docx'.format(customer))
 
     else:

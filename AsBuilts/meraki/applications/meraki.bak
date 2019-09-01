@@ -19,15 +19,10 @@ def http_get(meraki_url):
     for api in MerakiInfo.objects.all():
         api_key = api.api_key
     headers = {'X-Cisco-Meraki-API-Key': api_key}
-    try:
-        get_response = requests.get(base_url, headers=headers, verify=False)
-        status = get_response.status_code
-        get_response = get_response.json()
-        time.sleep(0.5)
-    except:
-        print('Meraki Cloud not reachable - check connection')
-        get_response = 'unreachable'
-        status = 'unreachable'
+    get_response = requests.get(base_url, headers=headers, verify=False)
+    status = get_response.status_code
+    get_response = get_response.json()
+    time.sleep(0.5)
     return get_response, status
 
 
@@ -122,37 +117,10 @@ def get_network_info(input_dict, append_url = '', dict_key ='', list=True):
             input_dict[dict_key].append(data)
 
 
-def pull_data(meraki_url='organizations'):
+def pull_data():
     # Intitialise dictionary to store returned data
-    data, status_code = http_get(meraki_url)
-    return data, status_code
-
-
-def get_org_info(dn='networks'):
-    data = []
-    orgs, status_code = pull_data(meraki_url='organizations')
-    for org in orgs:
-        # Get networks from all orgs and add to dictionary
-        org_data, status_code = pull_data(
-            meraki_url='organizations/{}/{}'.format(org["id"], dn))
-        for i in org_data:
-            data.append(i)
-    return data, status_code
-
-
-def get_network_info(network, append_url = ''):
-    data, status_code = http_get(meraki_url='networks/{}/{}'.format(network["id"],
-    append_url))
-    print('url = {} status code = {}'.format(append_url, status_code))
-    try:
-        data_df = pd.DataFrame.from_dict(data)
-    except:
-        data_df = pd.DataFrame.from_dict(data, orient='index')
-    pp.pprint(data_df)
-    return data_df, status_code
-
-'''
     meraki_data = {}
+    orgs, status_code = http_get(meraki_url='organizations')
     meraki_data['orgs'] = orgs
     meraki_data["networks"] = []
     meraki_data["licenses"] = []
@@ -173,7 +141,6 @@ def get_network_info(network, append_url = ''):
     meraki_data["uplinksLossAndLatency"] = []
 
     for customer in MerakiInfo.objects.all():
-        print(customer.customer_name)
         customer = customer.customer_name
 
     for org in meraki_data['orgs']:
@@ -209,8 +176,8 @@ def get_network_info(network, append_url = ''):
         print(status_code)
         for ip in ips:
             meraki_data["intrusionPrevention"].append(ip)
-
-
+    '''
+    for network in meraki_data['networks']:
         def get_network_info(append_url = '', dict_key ='', list=True):
             if append_url == 'l3FirewallRules':
                 print('yee')
@@ -229,10 +196,7 @@ def get_network_info(network, append_url = ''):
                         print("error found")
             elif list == False:
                 meraki_data[dict_key].append(data)
-
-
-
-
+    '''
     get_network_info(meraki_data['networks'], append_url='devices', dict_key='devices')
     get_network_info(meraki_data['networks'], append_url='securityEvents', dict_key='securityEvents',
         list=False)
@@ -363,7 +327,7 @@ def get_network_info(network, append_url = ''):
         intrusionSettings_df
         )
 
-
+    '''
     doc = create_word_doc_paragraph(
         doc = doc,
         heading_text = 'Content Filtering',
@@ -439,6 +403,5 @@ def get_network_info(network, append_url = ''):
         doc,
         ssids_df
         )
-
-'''
-#    doc.save('media/{}-AS_Built.docx'.format(customer))
+    '''
+    doc.save('media/{}-AS_Built.docx'.format(customer))
