@@ -23,25 +23,6 @@ from django.contrib.auth.decorators import login_required
 def index(request):
     return HttpResponse("Meraki As Built Generator.")
 
-def download(request, path):
-
-    file_path = os.path.join(settings.MEDIA_ROOT, path)
-    if os.path.exists(file_path):
-        with open(file_path, 'rb') as fh:
-            response = HttpResponse(fh.read(), content_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
-            response['Content-Disposition'] = 'inline; filename=' + os.path.basename(file_path)
-            return response
-    raise Http404
-'''
-def download_docx(request):
-    for i in MerakiInfo.objects.all():
-        customer = i.customer_name
-    with open('meraki/applications/{}-AS_Built.docx'.format(customer), 'rb') as doc:
-    	response = HttpResponse(doc.read())
-    	reponse['content_type'] = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-    	response['Content-Disposition'] = 'attachment;filename=file.docx'
-    	return response
-'''
 
 @login_required
 def defaults_form(request):
@@ -63,17 +44,17 @@ def defaults_form(request):
                 customer = i.customer_name
 
                 # Get Organisational Level Data
-                networks, status_code, networks_df = get_org_info(dn='networks')
-                licenses, status_code, licenseState_df = get_org_info(dn='licenseState')
-                uplinks, status_code, uplinksLossAndLatency_df = get_org_info(dn='uplinksLossAndLatency')
-                ips, status_code, intrusionSettings_df = get_org_info(dn='security/intrusionSettings')
-                malware, status_code, malwareSettings_df = get_org_info(dn='security/malwareSettings')
-                l3fw, status_code, l3FirewallRules_df = get_org_info(dn='security/l3FirewallRules')
+                networks, status_code, orgs_df, networks_df = get_org_info(dn='networks')
+                licenseState, status_code, orgs_df, licenseState_df = get_org_info(dn='licenseState')
+                uplinksLossAndLatency, status_code, orgs_df, uplinksLossAndLatency_df = get_org_info(dn='uplinksLossAndLatency')
+                #intrusionSettings, status_code, orgs_df, intrusionSettings_df = get_org_info(dn='security/intrusionSettings')
+                #malwareSettings, status_code, orgs_df, malwareSettings_df = get_org_info(dn='security/malwareSettings')
+                #l3FirewallRules, status_code, orgs_df, l3FirewallRules_df = get_org_info(dn='security/l3FirewallRules')
 
                 # Licenses Section of Document
                 doc = create_word_doc_paragraph(doc = doc,
                     heading_text = 'License Overview',
-                    paragraph_text='\nThe following licenses were found:\n')
+                    paragraph_text='\n{} has the following licenses:\n'.format(customer))
                 doc = create_word_doc_table(doc=doc,df=licenseState_df)
 
                 # Networks Section of Document
@@ -102,8 +83,8 @@ def defaults_form(request):
                     append_url='l3FirewallRules')
                     contentFiltering, status_code = get_network_info(network,
                     append_url='contentFiltering')
-                    intrusionSettings, status_code = get_network_info(network,
-                    append_url='security/intrusionSettings')
+                    #intrusionSettings, status_code = get_network_info(network,
+                    #append_url='security/intrusionSettings')
                     vlans, status_code = get_network_info(network,
                     append_url='vlans')
                     traffic, status_code = get_network_info(network,
@@ -119,67 +100,68 @@ def defaults_form(request):
                     # Devices Section of Document
                     doc = create_word_doc_paragraph(doc = doc,
                         heading_text = 'Devices Overview',
-                        paragraph_text='\nThe following Devices were found:\n')
+                        paragraph_text='\n{} has the following Devices in network {}:\n'.format(customer, network['name']))
                     doc = create_word_doc_table(doc=doc,df=devices)
 
                     # VLANs Section of Document
                     doc = create_word_doc_paragraph(doc = doc,
                         heading_text = 'VLANs',
-                        paragraph_text='\nThe following Devices were found:\n')
+                        paragraph_text='\n{} has the following VLANs configured for network {}:\n'.format(customer, network['name']))
                     doc = create_word_doc_table(doc=doc,df=vlans)
 
                     # Static Routes Section of Document
                     doc = create_word_doc_paragraph(doc = doc,
                         heading_text = 'Static Routes',
-                        paragraph_text='\nThe following Static Routes were found:\n')
+                        paragraph_text='\n{} has the following Static Routes configured for network {}:\n'.format(customer, network['name']))
                     doc = create_word_doc_table(doc=doc,df=staticRoutes)
 
                     # Wireless Section of Document
                     doc = create_word_doc_paragraph(doc = doc,
-                        heading_text = 'Devices Overview',
-                        paragraph_text='\nThe following Uplinks were found:\n')
+                        heading_text = 'Wireless Networks',
+                        paragraph_text='\n{} has the following SSIDs configured in network {}:\n'.format(customer, network['name']))
                     doc = create_word_doc_table(doc=doc,df=ssids)
 
                     # Wireless Clients Section of Document
                     doc = create_word_doc_paragraph(doc = doc,
                         heading_text = 'Clients',
-                        paragraph_text='\nThe following Wireless Clients were found:\n')
+                        paragraph_text='\n{} has the following Wireless Clients in network {}:\n'.format(customer, network['name']))
                     doc = create_word_doc_table(doc=doc,df=clients)
 
                     # Services Clients Section of Document
                     doc = create_word_doc_paragraph(doc = doc,
                         heading_text = 'Firewall Services',
-                        paragraph_text='\nThe following Rules are configured:\n')
+                        paragraph_text='\nThe following services are configured in {}\'s network {}:\n'.format(customer, network['name']))
                     doc = create_word_doc_table(doc=doc,df=firewalledServices)
 
                     # L3 Firewall Clients Section of Document
                     doc = create_word_doc_paragraph(doc = doc,
-                        heading_text = 'L2 Firewall Rules',
-                        paragraph_text='\nThe following Rules are configured:\n')
+                        heading_text = 'L3 Firewall Rules',
+                        paragraph_text='\nThe following L3 Firewall rules are configured in {}\'s network {}:\n'.format(customer, network['name']))
                     doc = create_word_doc_table(doc=doc,df=l3FirewallRules)
 
                     # L3 Firewall Clients Section of Document
                     doc = create_word_doc_paragraph(doc = doc,
                         heading_text = 'Content Filtering',
-                        paragraph_text='\nThe following Content Filtering Rules are configured:\n')
+                        paragraph_text='\nThe following Content Filtering Rules are configured:\n'.format(customer, network['name']))
                     doc = create_word_doc_table(doc=doc,df=contentFiltering)
 
                     # IPS Section of Document
+                    '''
                     doc = create_word_doc_paragraph(doc = doc,
                         heading_text = 'Intrusion Prevention',
                         paragraph_text='\nThe following Intrusion Prevention Settings are configured:\n')
                     doc = create_word_doc_table(doc=doc,df=intrusionSettings)
-
+                    '''
                     # Traffic Section of Document
                     doc = create_word_doc_paragraph(doc = doc,
                         heading_text = 'Network Traffic',
-                        paragraph_text='\nThe following Network Traffic has been detected:\n')
+                        paragraph_text='\nThe following Network Traffic has been detected for {}, network {} :\n'.format(customer, network['name']))
                     doc = create_word_doc_table(doc=doc,df=traffic)
 
                     # Connection Stats
                     doc = create_word_doc_paragraph(doc = doc,
-                        heading_text = 'Network Traffic',
-                        paragraph_text='\nThe following Network Traffic has been detected:\n')
+                        heading_text = 'Connection Statistics',
+                        paragraph_text='\nConnection Statistics for {}\'s network {}:\n'.format(customer, network['name']))
                     doc = create_word_doc_table(doc=doc,df=connectionStats)
 
                 save_word_document(doc = doc, customer = customer)
@@ -193,4 +175,3 @@ def defaults_form(request):
         form = MerakiInfoForm()
     return render(request, 'meraki/defaults.html', {
         'form': form})
-    #HttpResponseRedirect('media/{}-AS_Built.docx'.format)
