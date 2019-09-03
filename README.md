@@ -64,7 +64,7 @@ Quit the server with CONTROL-C.
 i.e. http://127.0.0.1:8080/meraki/defaults/
 ![alt text](https://github.com/j-sulliman/meraki/blob/master/AsBuilts/media/main-page.png)
 
-Download the generated As Built Document
+Download and review the generated As Built Document
 ![alt text](https://github.com/j-sulliman/meraki/blob/master/AsBuilts/media/Document-Example.png)
 
 
