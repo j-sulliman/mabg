@@ -10,7 +10,7 @@ from .tables import MerakiInfoForm_table
 from .applications.meraki import pull_data, get_org_info, get_network_info
 from .applications.meraki import create_word_doc_title, create_word_doc_paragraph
 from .applications.meraki import create_word_doc_table, create_word_doc_bullet
-from .applications.meraki import save_word_document
+from .applications.meraki import save_word_document, create_word_doc_text
 import os
 
 from django.conf import settings
@@ -24,8 +24,9 @@ def index(request):
     return HttpResponse("Meraki As Built Generator.")
 
 
-@login_required
+#@login_required
 def defaults_form(request):
+    log_data = []
     saved = False
     customer = ''
     if request.method == "POST":
@@ -39,17 +40,16 @@ def defaults_form(request):
             post.save()
             doc = create_word_doc_title()
             for i in MerakiInfo.objects.all():
-                print('API Key is {}'.format(i.api_key))
-                print('Customer is {}'.format(i.customer_name))
                 customer = i.customer_name
 
                 # Get Organisational Level Data
                 networks, status_code, orgs_df, networks_df = get_org_info(dn='networks')
+                log_data.append(status_code)
                 licenseState, status_code, orgs_df, licenseState_df = get_org_info(dn='licenseState')
+                log_data.append(status_code)
                 uplinksLossAndLatency, status_code, orgs_df, uplinksLossAndLatency_df = get_org_info(dn='uplinksLossAndLatency')
-                #intrusionSettings, status_code, orgs_df, intrusionSettings_df = get_org_info(dn='security/intrusionSettings')
-                #malwareSettings, status_code, orgs_df, malwareSettings_df = get_org_info(dn='security/malwareSettings')
-                #l3FirewallRules, status_code, orgs_df, l3FirewallRules_df = get_org_info(dn='security/l3FirewallRules')
+                log_data.append(status_code)
+
 
                 # Licenses Section of Document
                 doc = create_word_doc_paragraph(doc = doc,
@@ -73,28 +73,43 @@ def defaults_form(request):
                 for network in networks:
                     devices, status_code = get_network_info(network,
                     append_url='devices')
+                    log_data.append(status_code)
                     securityEvents, status_code = get_network_info(network,
                     append_url='securityEvents')
+                    log_data.append(status_code)
                     ssids, status_code = get_network_info(network,
                     append_url='ssids')
+                    log_data.append(status_code)
                     firewalledServices, status_code = get_network_info(network,
                     append_url='firewalledServices')
+                    log_data.append(status_code)
                     l3FirewallRules, status_code = get_network_info(network,
                     append_url='l3FirewallRules')
+                    log_data.append(status_code)
                     contentFiltering, status_code = get_network_info(network,
                     append_url='contentFiltering')
-                    #intrusionSettings, status_code = get_network_info(network,
-                    #append_url='security/intrusionSettings')
+                    log_data.append(status_code)
+                    intrusionSettings, status_code = get_network_info(network,
+                    append_url='security/intrusionSettings')
+                    log_data.append(status_code)
+                    malwareSettings, status_code = get_network_info(network,
+                    append_url='security/malwareSettings')
+                    log_data.append(status_code)
                     vlans, status_code = get_network_info(network,
                     append_url='vlans')
+                    log_data.append(status_code)
                     traffic, status_code = get_network_info(network,
                     append_url='traffic?timespan=86400')
+                    log_data.append(status_code)
                     connectionStats, status_code = get_network_info(network,
                     append_url='connectionStats?timespan=86400')
+                    log_data.append(status_code)
                     clients, status_code = get_network_info(network,
                     append_url='clients')
+                    log_data.append(status_code)
                     staticRoutes, status_code = get_network_info(network,
                     append_url='staticRoutes')
+                    log_data.append(status_code)
 
 
                     # Devices Section of Document
@@ -146,12 +161,17 @@ def defaults_form(request):
                     doc = create_word_doc_table(doc=doc,df=contentFiltering)
 
                     # IPS Section of Document
-                    '''
                     doc = create_word_doc_paragraph(doc = doc,
                         heading_text = 'Intrusion Prevention',
                         paragraph_text='\nThe following Intrusion Prevention Settings are configured:\n')
                     doc = create_word_doc_table(doc=doc,df=intrusionSettings)
-                    '''
+
+                    # Malware Section of Document
+                    doc = create_word_doc_paragraph(doc = doc,
+                        heading_text = 'Intrusion Prevention',
+                        paragraph_text='\nThe following Malware  Settings are configured:\n')
+                    doc = create_word_doc_table(doc=doc,df=malwareSettings)
+
                     # Traffic Section of Document
                     doc = create_word_doc_paragraph(doc = doc,
                         heading_text = 'Network Traffic',
@@ -163,6 +183,13 @@ def defaults_form(request):
                         heading_text = 'Connection Statistics',
                         paragraph_text='\nConnection Statistics for {}\'s network {}:\n'.format(customer, network['name']))
                     doc = create_word_doc_table(doc=doc,df=connectionStats)
+
+                # Logfile Section of Document
+                doc = create_word_doc_paragraph(doc = doc,
+                    heading_text = '**Logfile for reference - delete**',
+                    paragraph_text='\nThe status code for API requests are outlined below for reference:\n')
+                for log in log_data:
+                    create_word_doc_text(log, doc = doc)
 
                 save_word_document(doc = doc, customer = customer)
 

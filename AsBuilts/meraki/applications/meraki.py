@@ -28,14 +28,12 @@ def http_get(meraki_url):
         print('Meraki Cloud not reachable - check connection')
         get_response = 'unreachable'
         status = 'unreachable'
-        
+
     return get_response, status
 
 
 def create_word_doc_title():
     doc = Document('media/Meraki As Built.docx')
-    #doc.add_heading(doc_title, 0)
-    #doc.add_picture('meraki_splash.png', width=Inches(3.25))
     doc.add_page_break()
 
     return doc
@@ -44,7 +42,11 @@ def create_word_doc_title():
 def create_word_doc_paragraph(doc, heading_text = '', heading_level = 1,
                             paragraph_text = ''):
     doc.add_heading(heading_text, level=heading_level)
-    #new_section.orientation = WD_ORIENT.LANDSCAPE
+    p = doc.add_paragraph(paragraph_text)
+
+    return doc
+
+def create_word_doc_text(paragraph_text, doc):
     p = doc.add_paragraph(paragraph_text)
 
     return doc
@@ -138,6 +140,9 @@ def get_org_info(dn='networks'):
         # Get networks from all orgs and add to dictionary
         org_data, status_code = pull_data(
             meraki_url='organizations/{}/{}'.format(org["id"], dn))
+        log = ('organizations/{}/{}  - Returned status code: {}  '.format(
+            org["id"], dn, status_code))
+        print(log)
         for i in org_data:
             data.append(i)
         if len(org_data) > 0:
@@ -145,14 +150,17 @@ def get_org_info(dn='networks'):
                 out_df = pd.DataFrame.from_dict(org_data)
             except:
                 out_df = pd.DataFrame.from_dict(org_data, orient='index')
-    return data, status_code, data_df, out_df
+    return data, log, data_df, out_df
 
 
 def get_network_info(network, append_url = ''):
     data, status_code = http_get(meraki_url='networks/{}/{}'.format(network["id"],
     append_url))
+    log = ('networks/{}/{}  - Returned status code: {} '.format(network["id"],
+    append_url, status_code))
+    print(log)
     try:
         data_df = pd.DataFrame.from_dict(data)
     except:
         data_df = pd.DataFrame.from_dict(data, orient='index')
-    return data_df, status_code
+    return data_df, log
