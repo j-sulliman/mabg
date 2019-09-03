@@ -11,7 +11,7 @@ Optional editing and review of imported data through Django admin front end (i.e
 # Setup
 
 1) Ensure Meraki API Access is enabled
-![alt text](https://github.com/j-sulliman/meraki/AsBuilts/media/Enable-API.png)
+![alt text](https://github.com/j-sulliman/meraki/blob/master/AsBuilts/media/Enable-API.png)
 
 ```
 $ python3 -m venv venv
