@@ -65,11 +65,11 @@ i.e. http://127.0.0.1:8080/meraki/defaults/
 ![alt text](https://github.com/j-sulliman/meraki/blob/master/AsBuilts/media/main-page.png)
 
 Download the generated As Built Document
-![alt text](https://github.com/j-sulliman/nxos_to_aci/blob/master/Document-Example.png)
+![alt text](https://github.com/j-sulliman/meraki/blob/master/AsBuilts/media/Document-Example.png)
 
 
 Optionally review and delete the Logfile / API call status codes appended to the end of document
-![alt text](https://github.com/j-sulliman/nxos_to_aci/blob/master/Log-File.png)
+![alt text](https://github.com/j-sulliman/meraki/blob/master/AsBuilts/media/Log-File.png)
  
 
 # Disclaimer
