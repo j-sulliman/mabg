@@ -52,6 +52,7 @@ def defaults_form(request):
                 log_data.append(status_code)
 
 
+
                 # Licenses Section of Document
                 doc = create_word_doc_paragraph(doc = doc,
                     heading_text = 'License Overview',
@@ -74,6 +75,11 @@ def defaults_form(request):
                 for network in networks:
                     devices, status_code = get_network_info(network,
                     append_url='devices')
+                    if 'model' in devices.columns:
+                        unique_models = devices['model'].value_counts()
+                        print(unique_models)
+                        plt.pie(unique_models)
+                        plt.savefig('media/tmp/models.png')
                     log_data.append(status_code)
                     securityEvents, status_code = get_network_info(network,
                     append_url='securityEvents')
@@ -102,9 +108,10 @@ def defaults_form(request):
                     traffic, status_code = get_network_info(network,
                     append_url='traffic?timespan=86400')
                     log_data.append(status_code)
-                    #traffic_top = traffic.nlargest(10, 'sent')
-                    #traffic_top.plot(x = 'application', y= 'sent', kind = 'bar')
-                    #plt.show()
+                    if 'sent' in traffic.columns:
+                        traffic_top = traffic.nlargest(10, 'sent')
+                        traffic_top.plot(x = 'application', y= 'sent', kind = 'barh')
+                        plt.savefig('media/tmp/top_traffic.png')
                     connectionStats, status_code = get_network_info(network,
                     append_url='connectionStats?timespan=86400')
                     log_data.append(status_code)
