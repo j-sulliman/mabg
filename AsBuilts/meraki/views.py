@@ -12,6 +12,7 @@ from .applications.meraki import create_word_doc_title, create_word_doc_paragrap
 from .applications.meraki import create_word_doc_table, create_word_doc_bullet
 from .applications.meraki import save_word_document, create_word_doc_text
 import os
+import matplotlib.pyplot as plt
 
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
@@ -101,6 +102,9 @@ def defaults_form(request):
                     traffic, status_code = get_network_info(network,
                     append_url='traffic?timespan=86400')
                     log_data.append(status_code)
+                    #traffic_top = traffic.nlargest(10, 'sent')
+                    #traffic_top.plot(x = 'application', y= 'sent', kind = 'bar')
+                    #plt.show()
                     connectionStats, status_code = get_network_info(network,
                     append_url='connectionStats?timespan=86400')
                     log_data.append(status_code)
