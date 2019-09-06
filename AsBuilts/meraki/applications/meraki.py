@@ -38,6 +38,12 @@ def create_word_doc_title():
 
     return doc
 
+def ins_word_doc_image(doc, pic_dir, pic_width=5.25):
+    doc.add_picture(pic_dir, width=Inches(pic_width))
+    doc.add_paragraph()
+
+    return doc
+
 
 def create_word_doc_paragraph(doc, heading_text = '', heading_level = 1,
                             paragraph_text = ''):
@@ -106,7 +112,7 @@ def create_word_doc_table(doc, df):
 
 
 def save_word_document(doc, customer):
-    doc.save('media/{}-AS_Built.docx'.format(customer))
+    doc.save('media/tmp/{}-AS_Built.docx'.format(customer))
 
 def get_network_info(input_dict, append_url = '', dict_key ='', list=True):
     for network in input_dict:

@@ -11,6 +11,7 @@ from .applications.meraki import pull_data, get_org_info, get_network_info
 from .applications.meraki import create_word_doc_title, create_word_doc_paragraph
 from .applications.meraki import create_word_doc_table, create_word_doc_bullet
 from .applications.meraki import save_word_document, create_word_doc_text
+from .applications.meraki import ins_word_doc_image
 import os
 import matplotlib.pyplot as plt
 import numpy as np
@@ -76,24 +77,18 @@ def defaults_form(request):
                 for network in networks:
                     devices, status_code = get_network_info(network,
                     append_url='devices')
-                    '''
+
                     if 'firmware' in devices.columns:
                         unique_fw = devices['firmware'].value_counts()
-                        plt.pie(unique_fw, labels=devices['firmware'])
+                        unique_fw.plot.pie()
                         plt.savefig('media/tmp/firmware.png')
                         plt.clf()
 
                         unique_models = devices['model'].value_counts()
-                        labels = devices['model']
-                        index = np.arange(len(labels))
-                        plt.bar(index, unique_models)
-                        plt.xlabel('Model', fontsize=5)
-                        plt.ylabel('No of Devices', fontsize=5)
-                        plt.xticks(index, labels, fontsize=5, rotation=30)
-                        plt.title('Meraki Devices by Function')
+                        unique_models.plot.bar(x = 'model', y = 'count', rot = 0)
                         plt.savefig('media/tmp/models.png')
                         plt.clf()
-                    '''
+
                     log_data.append(status_code)
                     securityEvents, status_code = get_network_info(network,
                     append_url='securityEvents')
@@ -122,13 +117,18 @@ def defaults_form(request):
                     traffic, status_code = get_network_info(network,
                     append_url='traffic?timespan=86400')
                     log_data.append(status_code)
-                    '''
+
                     if 'sent' in traffic.columns:
-                        traffic_top = traffic.nlargest(10, 'sent')
-                        traffic_top.plot(x = 'application', y= 'sent', kind = 'barh')
-                        plt.savefig('media/tmp/top_traffic.png')
+                        traffic_top_sent = traffic.nlargest(10, 'sent')
+                        traffic_top_sent.plot(x = 'application', y= 'sent', kind = 'barh')
+                        plt.savefig('media/tmp/top_traffic_sent.png')
                         plt.clf()
-                    '''
+
+                        traffic_top_recv = traffic.nlargest(10, 'recv')
+                        traffic_top_recv.plot(x = 'application', y= 'recv', kind = 'barh')
+                        plt.savefig('media/tmp/top_traffic_recv.png')
+                        plt.clf()
+
                     connectionStats, status_code = get_network_info(network,
                     append_url='connectionStats?timespan=86400')
                     log_data.append(status_code)
@@ -136,22 +136,13 @@ def defaults_form(request):
                     append_url='clients')
                     log_data.append(status_code)
 
-                    '''
-                    if 'manufacturer' in clients.columns:
+
+                    if 'os' in clients.columns:
                         unique_mfr = clients['manufacturer'].value_counts()
-                        labels = unique_mfr
-                        index = np.arange(len(labels))
-                        print(labels)
-                        print(index)
-                        print(unique_mfr.index)
-                        plt.bar(index, unique_mfr)
-                        plt.xlabel('Manufacturer', fontsize=5)
-                        plt.ylabel('No of Devices', fontsize=5)
-                        plt.xticks(clients.manufacturer.unique, unique_mfr, fontsize=5, rotation=30)
-                        plt.title('Client Devices by Manufacturer')
+                        unique_mfr.plot.bar(x = 'client', y = 'count', rot = 0)
                         plt.savefig('media/tmp/clients.png')
                         plt.clf()
-                    '''
+
                     staticRoutes, status_code = get_network_info(network,
                     append_url='staticRoutes')
                     log_data.append(status_code)
@@ -160,7 +151,15 @@ def defaults_form(request):
                     # Devices Section of Document
                     doc = create_word_doc_paragraph(doc = doc,
                         heading_text = 'Devices Overview',
-                        paragraph_text='\n{} has the following Devices in network {}:\n'.format(customer, network['name']))
+                        paragraph_text='\n{} has the following Devices in network {}:\n'.format(customer, network['name'])
+                        )
+                    if os.path.isfile('media/tmp/models.png'):
+                        doc = ins_word_doc_image(doc = doc, pic_dir='media/tmp/models.png',
+                            pic_width=5.25)
+                    if os.path.isfile('media/tmp/firmware.png'):
+                        doc = ins_word_doc_image(doc = doc, pic_dir='media/tmp/firmware.png',
+                            pic_width=5.25)
+
                     doc = create_word_doc_table(doc=doc,df=devices)
 
                     # VLANs Section of Document
@@ -185,6 +184,9 @@ def defaults_form(request):
                     doc = create_word_doc_paragraph(doc = doc,
                         heading_text = 'Clients',
                         paragraph_text='\n{} has the following Wireless Clients in network {}:\n'.format(customer, network['name']))
+                    if os.path.isfile('media/tmp/clients.png'):
+                        doc = ins_word_doc_image(doc = doc, pic_dir='media/tmp/clients.png',
+                            pic_width=5.25)
                     doc = create_word_doc_table(doc=doc,df=clients)
 
                     # Services Clients Section of Document
@@ -221,6 +223,12 @@ def defaults_form(request):
                     doc = create_word_doc_paragraph(doc = doc,
                         heading_text = 'Network Traffic',
                         paragraph_text='\nThe following Network Traffic has been detected for {}, network {} :\n'.format(customer, network['name']))
+                    if os.path.isfile('media/tmp/top_traffic_sent.png'):
+                        doc = ins_word_doc_image(doc = doc, pic_dir='media/tmp/top_traffic_sent.png',
+                            pic_width=5.25)
+                    if os.path.isfile('media/tmp/top_traffic_recv.png'):
+                        doc = ins_word_doc_image(doc = doc, pic_dir='media/tmp/top_traffic_recv.png',
+                            pic_width=5.25)
                     doc = create_word_doc_table(doc=doc,df=traffic)
 
                     # Connection Stats
@@ -241,7 +249,7 @@ def defaults_form(request):
 
 
 
-        return redirect('/media/{}-AS_Built.docx'.format(customer))
+        return redirect('/media/tmp/{}-AS_Built.docx'.format(customer))
 
     else:
         form = MerakiInfoForm()
