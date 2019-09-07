@@ -83,7 +83,6 @@ def defaults_form(request):
                     append_url='devices')
 
                     if isinstance(devices, pd.DataFrame) and 'firmware' in devices.columns:
-                        print('Firmware it is')
                         unique_fw = devices['firmware'].value_counts()
                         unique_fw.plot.pie()
                         plt.savefig('media/tmp/firmware.png', bbox_inches="tight")
