@@ -6,6 +6,8 @@ editing and customisation.
 
 Optional editing and review of imported data through Django admin front end (i.e. http://127.0.0.1:8080/meraki/defaults/)  
 
+# Demo
+https://youtu.be/0SyVrn82g6g
 
 
 # Setup
