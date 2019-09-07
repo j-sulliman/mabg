@@ -1,13 +1,14 @@
+[![published](https://static.production.devnetcloud.com/codeexchange/assets/images/devnet-published.svg)](https://developer.cisco.com/codeexchange/github/repo/j-sulliman/mabg)
+
 # meraki
 
 # MABG - Meraki AS Built Generator: Automation of AS Built Document for Meraki
 
-As built documents are usually produced by project teams during project handover to a customer. The application should reduce the time needed by the network engineer to manually document the network when handing over to customer/operations teams after implementation. 
+The application should reduce the time needed by the network engineer to manually document the meraki network when handing over to customer/operations/VAR consulting teams after implementation. 
 
 Retrieves Meraki configuration via an API call, stores returned data and writes to a word document for further 
 editing and customisation. 
 
-Optional editing and review of imported data through Django admin front end (i.e. http://127.0.0.1:8080/meraki/defaults/)  
 
 # Demo
 https://youtu.be/0SyVrn82g6g
