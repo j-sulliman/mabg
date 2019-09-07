@@ -41,6 +41,7 @@ def defaults_form(request):
             for root, dirs, files in os.walk('media/tmp'):
                 for file in files:
                     os.remove(os.path.join(root, file))
+            os.mkdir('media/tmp')
             post = form.save(commit=False)
             #post.name = request.user
             #post.published_date = timezone.now()
@@ -238,8 +239,8 @@ def defaults_form(request):
                         doc = ins_word_doc_image(doc = doc, pic_dir='media/tmp/top_traffic_recv.png',
                             pic_width=5.25)
                         os.remove("media/tmp/top_traffic_recv.png")
-                    traffic_top_sent = traffic.nlargest(50, 'sent')
-                    doc = create_word_doc_table(doc=doc,df=traffic_top_sent)
+                    #traffic_top_sent = traffic.nlargest(50, 'sent')
+                    doc = create_word_doc_table(doc=doc,df=traffic)
 
                     # Connection Stats
                     doc = create_word_doc_paragraph(doc = doc,
