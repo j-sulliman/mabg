@@ -97,7 +97,6 @@ def create_word_doc_table(doc, df):
     # add a table to the end and create a reference variable
     # extra row is so we can add the header row
     #if isinstance(df, pd.DataFrame) and df.empty == False:
-    print(df)
     try:
         t = doc.add_table(df.shape[0]+1, df.shape[1], style = 'Grid Table 4 Accent 6')
         # add the header rows.
