@@ -9,6 +9,7 @@ import pandas as pd
 from docx import Document
 from docx.shared import Inches, Pt
 from docx.enum.section import WD_ORIENT, WD_SECTION
+from docx.enum.text import WD_ALIGN_PARAGRAPH
 from ..models import MerakiInfo
 import os
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -40,6 +41,8 @@ def create_word_doc_title():
 
 def ins_word_doc_image(doc, pic_dir, pic_width=5.25):
     doc.add_picture(pic_dir, width=Inches(pic_width))
+    last_paragraph = doc.paragraphs[-1]
+    last_paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
     doc.add_paragraph()
 
     return doc
@@ -93,21 +96,22 @@ def create_word_doc_bullet(
 def create_word_doc_table(doc, df):
     # add a table to the end and create a reference variable
     # extra row is so we can add the header row
-    if df.empty == False:
-        try:
-            t = doc.add_table(df.shape[0]+1, df.shape[1], style = 'Grid Table 4 Accent 6')
-            # add the header rows.
+    #if isinstance(df, pd.DataFrame) and df.empty == False:
+    print(df)
+    try:
+        t = doc.add_table(df.shape[0]+1, df.shape[1], style = 'Grid Table 4 Accent 6')
+        # add the header rows.
+        for j in range(df.shape[-1]):
+            t.cell(0,j).text = df.columns[j]
+        # add the rest of the data frame
+        for i in range(df.shape[0]):
             for j in range(df.shape[-1]):
-                t.cell(0,j).text = df.columns[j]
-            # add the rest of the data frame
-            for i in range(df.shape[0]):
-                for j in range(df.shape[-1]):
-                    t.cell(i+1,j).text = str(df.values[i,j])
-        except:
-            doc = doc
-            print('Unable to add table')
+                t.cell(i+1,j).text = str(df.values[i,j])
+    except:
+        doc = doc
+        print('Unable to add table')
 
-        doc.add_page_break()
+    doc.add_page_break()
     return doc
 
 
@@ -116,17 +120,20 @@ def save_word_document(doc, customer):
 
 def get_network_info(input_dict, append_url = '', dict_key ='', list=True):
     for network in input_dict:
-        data, status_code = http_get(meraki_url='networks/{}/{}'.format(network["id"],
-        append_url))
-        if list == True:
-            for i in data:
-                if 'errors' not in i:
-                    print(input_dict[dict_key])
-                    input_dict[dict_key].append(i)
-                else:
-                    print("error found")
-        elif list == False:
-            input_dict[dict_key].append(data)
+        try:
+            data, status_code = http_get(meraki_url='networks/{}/{}'.format(network["id"],
+            append_url))
+            if list == True:
+                for i in data:
+                    if 'errors' not in i:
+                        print(input_dict[dict_key])
+                        input_dict[dict_key].append(i)
+                    else:
+                        print("error found")
+            elif list == False:
+                input_dict[dict_key].append(data)
+        except:
+            print('{} not reachable'.format(append_url))
 
 
 def pull_data(meraki_url='organizations'):
@@ -165,8 +172,12 @@ def get_network_info(network, append_url = ''):
     log = ('networks/{}/{}  - Returned status code: {} '.format(network["id"],
     append_url, status_code))
     print(log)
+    #if isinstance(data, dict):
     try:
         data_df = pd.DataFrame.from_dict(data)
     except:
-        data_df = pd.DataFrame.from_dict(data, orient='index')
+        try:
+            data_df = pd.DataFrame.from_dict(data, orient='index')
+        except:
+            data_df = data
     return data_df, log

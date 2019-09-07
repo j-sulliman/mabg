@@ -12,9 +12,10 @@ from .applications.meraki import create_word_doc_title, create_word_doc_paragrap
 from .applications.meraki import create_word_doc_table, create_word_doc_bullet
 from .applications.meraki import save_word_document, create_word_doc_text
 from .applications.meraki import ins_word_doc_image
-import os
+import os, re, os.path
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
@@ -37,6 +38,9 @@ def defaults_form(request):
         MerakiInfo.objects.all().delete()
         #ObjectConfigurationStatus.objects.all().delete()
         if form.is_valid():
+            for root, dirs, files in os.walk('media/tmp'):
+                for file in files:
+                    os.remove(os.path.join(root, file))
             post = form.save(commit=False)
             #post.name = request.user
             #post.published_date = timezone.now()
@@ -78,15 +82,16 @@ def defaults_form(request):
                     devices, status_code = get_network_info(network,
                     append_url='devices')
 
-                    if 'firmware' in devices.columns:
+                    if isinstance(devices, pd.DataFrame) and 'firmware' in devices.columns:
+                        print('Firmware it is')
                         unique_fw = devices['firmware'].value_counts()
                         unique_fw.plot.pie()
-                        plt.savefig('media/tmp/firmware.png')
+                        plt.savefig('media/tmp/firmware.png', bbox_inches="tight")
                         plt.clf()
 
                         unique_models = devices['model'].value_counts()
                         unique_models.plot.bar(x = 'model', y = 'count', rot = 0)
-                        plt.savefig('media/tmp/models.png')
+                        plt.savefig('media/tmp/models.png', bbox_inches="tight")
                         plt.clf()
 
                     log_data.append(status_code)
@@ -117,16 +122,15 @@ def defaults_form(request):
                     traffic, status_code = get_network_info(network,
                     append_url='traffic?timespan=86400')
                     log_data.append(status_code)
-
-                    if 'sent' in traffic.columns:
+                    if isinstance(traffic, pd.DataFrame) and 'sent' in traffic.columns:
                         traffic_top_sent = traffic.nlargest(10, 'sent')
                         traffic_top_sent.plot(x = 'application', y= 'sent', kind = 'barh')
-                        plt.savefig('media/tmp/top_traffic_sent.png')
+                        plt.savefig('media/tmp/top_traffic_sent.png', bbox_inches="tight")
                         plt.clf()
 
                         traffic_top_recv = traffic.nlargest(10, 'recv')
                         traffic_top_recv.plot(x = 'application', y= 'recv', kind = 'barh')
-                        plt.savefig('media/tmp/top_traffic_recv.png')
+                        plt.savefig('media/tmp/top_traffic_recv.png', bbox_inches="tight")
                         plt.clf()
 
                     connectionStats, status_code = get_network_info(network,
@@ -137,10 +141,11 @@ def defaults_form(request):
                     log_data.append(status_code)
 
 
-                    if 'os' in clients.columns:
+                    if isinstance(clients, pd.DataFrame) and 'os' in clients.columns:
+                        print('clients it is')
                         unique_mfr = clients['manufacturer'].value_counts()
-                        unique_mfr.plot.bar(x = 'client', y = 'count', rot = 0)
-                        plt.savefig('media/tmp/clients.png')
+                        unique_mfr.plot.barh(x = 'client', y = 'count', rot = 0)
+                        plt.savefig('media/tmp/clients.png', bbox_inches="tight")
                         plt.clf()
 
                     staticRoutes, status_code = get_network_info(network,
@@ -156,9 +161,11 @@ def defaults_form(request):
                     if os.path.isfile('media/tmp/models.png'):
                         doc = ins_word_doc_image(doc = doc, pic_dir='media/tmp/models.png',
                             pic_width=5.25)
+                        os.remove("media/tmp/models.png")
                     if os.path.isfile('media/tmp/firmware.png'):
                         doc = ins_word_doc_image(doc = doc, pic_dir='media/tmp/firmware.png',
                             pic_width=5.25)
+                        os.remove("media/tmp/firmware.png")
 
                     doc = create_word_doc_table(doc=doc,df=devices)
 
@@ -187,6 +194,7 @@ def defaults_form(request):
                     if os.path.isfile('media/tmp/clients.png'):
                         doc = ins_word_doc_image(doc = doc, pic_dir='media/tmp/clients.png',
                             pic_width=5.25)
+                        os.remove("media/tmp/clients.png")
                     doc = create_word_doc_table(doc=doc,df=clients)
 
                     # Services Clients Section of Document
@@ -222,14 +230,17 @@ def defaults_form(request):
                     # Traffic Section of Document
                     doc = create_word_doc_paragraph(doc = doc,
                         heading_text = 'Network Traffic',
-                        paragraph_text='\nThe following Network Traffic has been detected for {}, network {} :\n'.format(customer, network['name']))
+                        paragraph_text='\nThe following shows the top two senders detected for {}, network {} over the past 24 hours:\n'.format(customer, network['name']))
                     if os.path.isfile('media/tmp/top_traffic_sent.png'):
                         doc = ins_word_doc_image(doc = doc, pic_dir='media/tmp/top_traffic_sent.png',
                             pic_width=5.25)
+                        os.remove("media/tmp/top_traffic_sent.png")
                     if os.path.isfile('media/tmp/top_traffic_recv.png'):
                         doc = ins_word_doc_image(doc = doc, pic_dir='media/tmp/top_traffic_recv.png',
                             pic_width=5.25)
-                    doc = create_word_doc_table(doc=doc,df=traffic)
+                        os.remove("media/tmp/top_traffic_recv.png")
+                    traffic_top_sent = traffic.nlargest(50, 'sent')
+                    doc = create_word_doc_table(doc=doc,df=traffic_top_sent)
 
                     # Connection Stats
                     doc = create_word_doc_paragraph(doc = doc,
