@@ -1,6 +1,9 @@
 # meraki
 
 # MABG - Meraki AS Built Generator: Automation of AS Built Document for Meraki
+
+As built documents are usually produced by project teams during project handover to a customer. The application should reduce the time needed by the network engineer to manually document the network when handing over to customer/operations teams after implementation. 
+
 Retrieves Meraki configuration via an API call, stores returned data and writes to a word document for further 
 editing and customisation. 
 
